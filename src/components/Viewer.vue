@@ -60,8 +60,6 @@ defineExpose({
     <div class="canvas-container">
       <div class="image-wrapper">
         <canvas ref="canvasRef"></canvas>
-
-        {{ currentTool }}
       </div>
     </div>
   </div>

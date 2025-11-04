@@ -1,12 +1,20 @@
 import { ref, type Ref } from 'vue'
 import type { ToolType } from '@/components/marker.config'
 import useCircle from './useCircle'
+import useRect from './useRect'
+import useLine from './useLine'
 
 const currentTool = ref<ToolType>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 export function useMarkerTool() {
   const { onMouseInit: onCircleMouseInit, onMouseClean: onCircleMouseClean } = useCircle(
+    canvasRef as Ref<HTMLCanvasElement>,
+  )
+  const { onMouseInit: onRectMouseInit, onMouseClean: onRectMouseClean } = useRect(
+    canvasRef as Ref<HTMLCanvasElement>,
+  )
+  const { onMouseInit: onLineMouseInit, onMouseClean: onLineMouseClean } = useLine(
     canvasRef as Ref<HTMLCanvasElement>,
   )
 
@@ -36,6 +44,12 @@ export function useMarkerTool() {
       case 'circle':
         onCircleMouseInit()
         break
+      case 'rect':
+        onRectMouseInit()
+        break
+      case 'line':
+        onLineMouseInit()
+        break
     }
   }
 
@@ -43,6 +57,12 @@ export function useMarkerTool() {
     switch (tool) {
       case 'circle':
         onCircleMouseClean()
+        break
+      case 'rect':
+        onRectMouseClean()
+        break
+      case 'line':
+        onLineMouseClean()
         break
     }
   }
