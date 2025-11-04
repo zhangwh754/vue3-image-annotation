@@ -1,7 +1,26 @@
-<script setup></script>
+<script lang="ts" setup>
+import { ref, type Ref } from 'vue'
+import { useMarker } from '@/hooks/useMarker'
+import Icon from './Icon/index.vue'
+import markerConfig from './marker.config'
+
+const props = defineProps<{
+  canvasRef: HTMLCanvasElement
+}>()
+
+const { currentTool, toggleTool, clearCanvas } = useMarker({ canvasRef: props.canvasRef })
+</script>
 
 <template>
-  <div class="editor">toolbar</div>
+  <div class="editor">
+    <icon
+      v-for="item in markerConfig"
+      class="editor-btn"
+      :class="[{ 'editor-btn-active': item.type === currentTool }, `editor-btn-${item.type}`]"
+      :icon="item.icon"
+      @click="toggleTool(item.type)"
+    />
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -12,10 +31,20 @@
   align-items: center;
   padding: 0 15px;
   border-radius: 2px;
-  box-shadow: 0 0 3px 0 #333;
 
   * {
     user-select: none;
+  }
+
+  .editor-btn {
+    padding: 0 4px;
+    font-size: 26px;
+    cursor: pointer;
+    color: #fff;
+
+    &.editor-btn-active {
+      color: blue;
+    }
   }
 }
 </style>

@@ -46,6 +46,7 @@ function exportImageFile() {
 }
 
 defineExpose({
+  canvasRef,
   exportImageFile,
 })
 </script>
