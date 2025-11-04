@@ -1,14 +1,9 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue'
-import { useMarker } from '@/hooks/useMarker'
+import { useMarkerTool } from '@/hooks/useMarkerTool'
 import Icon from './Icon/index.vue'
 import markerConfig from './marker.config'
 
-const props = defineProps<{
-  canvasRef: HTMLCanvasElement
-}>()
-
-const { currentTool, toggleTool, clearCanvas } = useMarker({ canvasRef: props.canvasRef })
+const { currentTool, toggleTool, clearCanvas } = useMarkerTool()
 </script>
 
 <template>

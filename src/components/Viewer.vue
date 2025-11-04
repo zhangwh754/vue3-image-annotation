@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useMarkerTool } from '@/hooks/useMarkerTool'
 import { ref, onMounted, defineExpose } from 'vue'
 
 interface Props {
@@ -8,6 +9,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   imageUrl: 'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg',
 })
+
+const { currentTool, toggleTool, clearCanvas, setCanvasCtx } = useMarkerTool()
 
 const canvasRef = ref<null | HTMLCanvasElement>(null)
 
@@ -20,6 +23,8 @@ function canvasRender() {
   const canvas = canvasRef.value
 
   if (!canvas) return
+
+  setCanvasCtx(canvas)
 
   const img = new Image()
   img.crossOrigin = 'anonymous' // ⚠️ 若图片跨域，这行必加
@@ -46,7 +51,6 @@ function exportImageFile() {
 }
 
 defineExpose({
-  canvasRef,
   exportImageFile,
 })
 </script>
@@ -56,6 +60,8 @@ defineExpose({
     <div class="canvas-container">
       <div class="image-wrapper">
         <canvas ref="canvasRef"></canvas>
+
+        {{ currentTool }}
       </div>
     </div>
   </div>

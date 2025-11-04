@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import Viewer from './components/Viewer.vue'
 import Editor from './components/Editor.vue'
-
-const viewerRef = ref<InstanceType<typeof Viewer> | null>(null)
 </script>
 
 <template>
@@ -11,11 +8,7 @@ const viewerRef = ref<InstanceType<typeof Viewer> | null>(null)
     <div class="canvas-container">
       <Viewer ref="viewerRef" v-bind="$attrs"></Viewer>
 
-      <Editor
-        v-if="viewerRef?.canvasRef"
-        class="annotation-toolbar"
-        :canvasRef="viewerRef?.canvasRef"
-      ></Editor>
+      <Editor class="annotation-toolbar"></Editor>
     </div>
   </div>
 </template>
