@@ -1,18 +1,18 @@
 import type { Ref } from 'vue'
 
 type MouseHandler = {
-  onMouseMove: (e: MouseEvent) => void
-  onMouseDown: (e: MouseEvent) => void
-  onMouseUp: (e: MouseEvent) => void
+  onMouseMove?: (e: MouseEvent) => void
+  onMouseDown?: (e: MouseEvent) => void
+  onMouseUp?: (e: MouseEvent) => void
 }
 
 export default function useMouse(domRef: Ref<HTMLElement>, mouseEvent: MouseHandler) {
   const { onMouseMove, onMouseDown, onMouseUp } = mouseEvent
 
   const onMouseInit = () => {
-    domRef.value.addEventListener('mousemove', onMouseMove)
-    domRef.value.addEventListener('mousedown', onMouseDown)
-    domRef.value.addEventListener('mouseup', onMouseUp)
+    if (onMouseMove) domRef.value.addEventListener('mousemove', onMouseMove)
+    if (onMouseDown) domRef.value.addEventListener('mousedown', onMouseDown)
+    if (onMouseUp) domRef.value.addEventListener('mouseup', onMouseUp)
 
     return () => onMouseClean()
   }
@@ -20,9 +20,9 @@ export default function useMouse(domRef: Ref<HTMLElement>, mouseEvent: MouseHand
   const onMouseClean = () => {
     if (!domRef.value) return
 
-    domRef.value.removeEventListener('mousemove', onMouseMove)
-    domRef.value.removeEventListener('mousedown', onMouseDown)
-    domRef.value.removeEventListener('mouseup', onMouseUp)
+    if (onMouseMove) domRef.value.removeEventListener('mousemove', onMouseMove)
+    if (onMouseDown) domRef.value.removeEventListener('mousedown', onMouseDown)
+    if (onMouseUp) domRef.value.removeEventListener('mouseup', onMouseUp)
   }
 
   return {
