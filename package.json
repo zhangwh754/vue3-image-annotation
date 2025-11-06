@@ -16,6 +16,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "fabric": "^6.7.1",
     "vue": "^3.5.22"
   },
   "devDependencies": {

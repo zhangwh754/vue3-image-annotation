@@ -3,22 +3,23 @@ import type { ToolType } from '@/components/marker.config'
 import useCircle from './useCircle'
 import useRect from './useRect'
 import useLine from './useLine'
+import type { StaticCanvas } from 'fabric'
 
 const currentTool = ref<ToolType>(null)
-const canvasRef = ref<HTMLCanvasElement | null>(null)
+const canvasRef = ref<StaticCanvas | null>(null)
 
 export function useMarkerTool() {
   const { onMouseInit: onCircleMouseInit, onMouseClean: onCircleMouseClean } = useCircle(
-    canvasRef as Ref<HTMLCanvasElement>,
+    canvasRef as Ref<StaticCanvas>,
   )
-  const { onMouseInit: onRectMouseInit, onMouseClean: onRectMouseClean } = useRect(
-    canvasRef as Ref<HTMLCanvasElement>,
-  )
-  const { onMouseInit: onLineMouseInit, onMouseClean: onLineMouseClean } = useLine(
-    canvasRef as Ref<HTMLCanvasElement>,
-  )
+  // const { onMouseInit: onRectMouseInit, onMouseClean: onRectMouseClean } = useRect(
+  //   canvasRef as Ref<StaticCanvas>,
+  // )
+  // const { onMouseInit: onLineMouseInit, onMouseClean: onLineMouseClean } = useLine(
+  //   canvasRef as Ref<StaticCanvas>,
+  // )
 
-  function setCanvasCtx(ctx: HTMLCanvasElement) {
+  function setCanvasCtx(ctx: StaticCanvas) {
     canvasRef.value = ctx
   }
 
@@ -44,12 +45,12 @@ export function useMarkerTool() {
       case 'circle':
         onCircleMouseInit()
         break
-      case 'rect':
-        onRectMouseInit()
-        break
-      case 'line':
-        onLineMouseInit()
-        break
+      // case 'rect':
+      //   onRectMouseInit()
+      //   break
+      // case 'line':
+      //   onLineMouseInit()
+      //   break
     }
   }
 
@@ -58,22 +59,6 @@ export function useMarkerTool() {
       case 'circle':
         onCircleMouseClean()
         break
-      case 'rect':
-        onRectMouseClean()
-        break
-      case 'line':
-        onLineMouseClean()
-        break
-    }
-  }
-
-  /** 清空画布 */
-  function clearCanvas() {
-    if (canvasRef.value) {
-      const ctx = canvasRef.value
-      const ctxContext = canvasRef.value.getContext('2d')!
-
-      ctxContext.clearRect(0, 0, ctx.width, ctx.height)
     }
   }
 
@@ -82,6 +67,5 @@ export function useMarkerTool() {
     currentTool,
     setCanvasCtx,
     toggleTool,
-    clearCanvas,
   }
 }

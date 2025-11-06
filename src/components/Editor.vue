@@ -3,7 +3,7 @@ import { useMarkerTool } from '@/hooks/useMarkerTool'
 import Icon from './Icon/index.vue'
 import markerConfig from './marker.config'
 
-const { currentTool, toggleTool, clearCanvas } = useMarkerTool()
+const { currentTool, toggleTool } = useMarkerTool()
 </script>
 
 <template>

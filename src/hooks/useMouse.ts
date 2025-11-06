@@ -1,3 +1,4 @@
+import type { StaticCanvas } from 'fabric'
 import type { Ref } from 'vue'
 
 type MouseHandler = {
@@ -6,23 +7,27 @@ type MouseHandler = {
   onMouseUp?: (e: MouseEvent) => void
 }
 
-export default function useMouse(domRef: Ref<HTMLElement>, mouseEvent: MouseHandler) {
+export default function useMouse(domRef: Ref<StaticCanvas>, mouseEvent: MouseHandler) {
   const { onMouseMove, onMouseDown, onMouseUp } = mouseEvent
 
   const onMouseInit = () => {
-    if (onMouseMove) domRef.value.addEventListener('mousemove', onMouseMove)
-    if (onMouseDown) domRef.value.addEventListener('mousedown', onMouseDown)
-    if (onMouseUp) domRef.value.addEventListener('mouseup', onMouseUp)
+    const canvasElement = domRef.value?.getElement()
+    if (!canvasElement) return
+
+    if (onMouseMove) canvasElement.addEventListener('mousemove', onMouseMove)
+    if (onMouseDown) canvasElement.addEventListener('mousedown', onMouseDown)
+    if (onMouseUp) canvasElement.addEventListener('mouseup', onMouseUp)
 
     return () => onMouseClean()
   }
 
   const onMouseClean = () => {
-    if (!domRef.value) return
+    const canvasElement = domRef.value?.getElement()
+    if (!canvasElement) return
 
-    if (onMouseMove) domRef.value.removeEventListener('mousemove', onMouseMove)
-    if (onMouseDown) domRef.value.removeEventListener('mousedown', onMouseDown)
-    if (onMouseUp) domRef.value.removeEventListener('mouseup', onMouseUp)
+    if (onMouseMove) canvasElement.removeEventListener('mousemove', onMouseMove)
+    if (onMouseDown) canvasElement.removeEventListener('mousedown', onMouseDown)
+    if (onMouseUp) canvasElement.removeEventListener('mouseup', onMouseUp)
   }
 
   return {
