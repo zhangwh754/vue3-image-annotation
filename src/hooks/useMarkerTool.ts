@@ -15,9 +15,9 @@ export function useMarkerTool() {
   // const { onMouseInit: onRectMouseInit, onMouseClean: onRectMouseClean } = useRect(
   //   canvasRef as Ref<StaticCanvas>,
   // )
-  // const { onMouseInit: onLineMouseInit, onMouseClean: onLineMouseClean } = useLine(
-  //   canvasRef as Ref<StaticCanvas>,
-  // )
+  const { onMouseInit: onLineMouseInit, onMouseClean: onLineMouseClean } = useLine(
+    canvasRef as Ref<StaticCanvas>,
+  )
 
   function setCanvasCtx(ctx: StaticCanvas) {
     canvasRef.value = ctx
@@ -48,9 +48,9 @@ export function useMarkerTool() {
       // case 'rect':
       //   onRectMouseInit()
       //   break
-      // case 'line':
-      //   onLineMouseInit()
-      //   break
+      case 'line':
+        onLineMouseInit()
+        break
     }
   }
 
@@ -58,6 +58,12 @@ export function useMarkerTool() {
     switch (tool) {
       case 'circle':
         onCircleMouseClean()
+        break
+      // case 'rect':
+      //   onRectMouseClean()
+      //   break
+      case 'line':
+        onLineMouseClean()
         break
     }
   }
