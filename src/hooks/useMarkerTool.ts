@@ -12,9 +12,9 @@ export function useMarkerTool() {
   const { onMouseInit: onCircleMouseInit, onMouseClean: onCircleMouseClean } = useCircle(
     canvasRef as Ref<StaticCanvas>,
   )
-  // const { onMouseInit: onRectMouseInit, onMouseClean: onRectMouseClean } = useRect(
-  //   canvasRef as Ref<StaticCanvas>,
-  // )
+  const { onMouseInit: onRectMouseInit, onMouseClean: onRectMouseClean } = useRect(
+    canvasRef as Ref<StaticCanvas>,
+  )
   const { onMouseInit: onLineMouseInit, onMouseClean: onLineMouseClean } = useLine(
     canvasRef as Ref<StaticCanvas>,
   )
@@ -45,9 +45,9 @@ export function useMarkerTool() {
       case 'circle':
         onCircleMouseInit()
         break
-      // case 'rect':
-      //   onRectMouseInit()
-      //   break
+      case 'rect':
+        onRectMouseInit()
+        break
       case 'line':
         onLineMouseInit()
         break
@@ -59,9 +59,9 @@ export function useMarkerTool() {
       case 'circle':
         onCircleMouseClean()
         break
-      // case 'rect':
-      //   onRectMouseClean()
-      //   break
+      case 'rect':
+        onRectMouseClean()
+        break
       case 'line':
         onLineMouseClean()
         break
