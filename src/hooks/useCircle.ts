@@ -1,9 +1,9 @@
 import { ref, type Ref } from 'vue'
-import { Circle, type StaticCanvas } from 'fabric'
+import { Circle, type Canvas, type TPointerEvent, type TPointerEventInfo } from 'fabric'
 import defaultConfig from '@/config/default-config'
 import useMouse from './useMouse'
 
-export default function useCircle(canvasRef: Ref<StaticCanvas>) {
+export default function useCircle(canvasRef: Ref<Canvas>) {
   const isDrawing = ref(false)
   const startX = ref(0)
   const startY = ref(0)
@@ -15,22 +15,13 @@ export default function useCircle(canvasRef: Ref<StaticCanvas>) {
   // 保存临时圆形对象
   let tempCircle: Circle | null = null
 
-  const getCanvasCoordinates = (e: MouseEvent) => {
-    const canvas = canvasRef.value
-    const rect = canvas.getElement().getBoundingClientRect()
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    }
-  }
-
   const { onMouseInit, onMouseClean } = useMouse(canvasRef, {
-    onMouseDown: (e: MouseEvent) => {
+    onMouseDown: (options: TPointerEventInfo<TPointerEvent>) => {
       const canvas = canvasRef.value
       if (!canvas) return
 
       isDrawing.value = true
-      const { x, y } = getCanvasCoordinates(e)
+      const { x, y } = canvas.getViewportPoint(options.e)
       startX.value = x
       startY.value = y
 
@@ -52,13 +43,13 @@ export default function useCircle(canvasRef: Ref<StaticCanvas>) {
       canvas.renderAll()
     },
 
-    onMouseMove: (e: MouseEvent) => {
+    onMouseMove: (options: TPointerEventInfo<TPointerEvent>) => {
       if (!isDrawing.value || !tempCircle) return
 
       const canvas = canvasRef.value
       if (!canvas) return
 
-      const { x, y } = getCanvasCoordinates(e)
+      const { x, y } = canvas.getViewportPoint(options.e)
 
       // 计算半径
       const radius = Math.sqrt(Math.pow(x - startX.value, 2) + Math.pow(y - startY.value, 2))
@@ -71,7 +62,7 @@ export default function useCircle(canvasRef: Ref<StaticCanvas>) {
       canvas.renderAll()
     },
 
-    onMouseUp: (e: MouseEvent) => {
+    onMouseUp: (options: TPointerEventInfo<TPointerEvent>) => {
       if (!isDrawing.value || !tempCircle) return
 
       const canvas = canvasRef.value
@@ -79,7 +70,7 @@ export default function useCircle(canvasRef: Ref<StaticCanvas>) {
 
       isDrawing.value = false
 
-      const { x, y } = getCanvasCoordinates(e)
+      const { x, y } = canvas.getViewportPoint(options.e)
 
       // 计算最终半径
       const radius = Math.sqrt(Math.pow(x - startX.value, 2) + Math.pow(y - startY.value, 2))
@@ -90,12 +81,16 @@ export default function useCircle(canvasRef: Ref<StaticCanvas>) {
       } else {
         // 将临时圆形转为正式对象（设置为可选择）
         tempCircle.set({
-          selectable: true,
-          evented: true,
+          selectable: true, // 可选择
+          evented: true, // 可交互
+          hasControls: true, // 显示控制点
+          hasBorders: true, // 显示边框
         })
       }
 
       canvas.renderAll()
+      canvas.setActiveObject(tempCircle)
+      canvas.discardActiveObject()
       tempCircle = null
     },
   })

@@ -1,10 +1,10 @@
 // useLine.ts
 import { ref, type Ref } from 'vue'
-import { Line, type StaticCanvas } from 'fabric'
+import { Line, type Canvas, type TPointerEvent, type TPointerEventInfo } from 'fabric'
 import defaultConfig from '@/config/default-config'
 import useMouse from './useMouse'
 
-export default function useLine(canvasRef: Ref<StaticCanvas>) {
+export default function useLine(canvasRef: Ref<Canvas>) {
   const isDrawing = ref(false)
   const startX = ref(0)
   const startY = ref(0)
@@ -15,22 +15,13 @@ export default function useLine(canvasRef: Ref<StaticCanvas>) {
   // 保存临时线条对象
   let tempLine: Line | null = null
 
-  const getCanvasCoordinates = (e: MouseEvent) => {
-    const canvas = canvasRef.value
-    const rect = canvas.getElement().getBoundingClientRect()
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    }
-  }
-
   const { onMouseInit, onMouseClean } = useMouse(canvasRef, {
-    onMouseDown: (e: MouseEvent) => {
+    onMouseDown: (options: TPointerEventInfo<TPointerEvent>) => {
       const canvas = canvasRef.value
       if (!canvas) return
 
       isDrawing.value = true
-      const { x, y } = getCanvasCoordinates(e)
+      const { x, y } = canvas.getViewportPoint(options.e)
       startX.value = x
       startY.value = y
 
@@ -46,13 +37,13 @@ export default function useLine(canvasRef: Ref<StaticCanvas>) {
       canvas.renderAll()
     },
 
-    onMouseMove: (e: MouseEvent) => {
+    onMouseMove: (options: TPointerEventInfo<TPointerEvent>) => {
       if (!isDrawing.value || !tempLine) return
 
       const canvas = canvasRef.value
       if (!canvas) return
 
-      const { x, y } = getCanvasCoordinates(e)
+      const { x, y } = canvas.getViewportPoint(options.e)
 
       // 更新线条终点
       tempLine.set({
@@ -63,7 +54,7 @@ export default function useLine(canvasRef: Ref<StaticCanvas>) {
       canvas.renderAll()
     },
 
-    onMouseDblClick: (e: MouseEvent) => {
+    onMouseUp: (options: TPointerEventInfo<TPointerEvent>) => {
       if (!isDrawing.value || !tempLine) return
 
       const canvas = canvasRef.value
@@ -71,7 +62,7 @@ export default function useLine(canvasRef: Ref<StaticCanvas>) {
 
       isDrawing.value = false
 
-      const { x, y } = getCanvasCoordinates(e)
+      const { x, y } = canvas.getViewportPoint(options.e)
 
       // 计算线条长度
       const length = Math.sqrt(Math.pow(x - startX.value, 2) + Math.pow(y - startY.value, 2))
@@ -86,10 +77,16 @@ export default function useLine(canvasRef: Ref<StaticCanvas>) {
           y2: y,
           selectable: true,
           evented: true,
+          hasControls: false,
+          hasBorders: true,
+          perPixelTargetFind: true, // 精确像素检测
+          targetFindTolerance: 5, // 增加选择容差（像素）
         })
       }
 
       canvas.renderAll()
+      canvas.setActiveObject(tempLine)
+      canvas.discardActiveObject()
       tempLine = null
     },
   })

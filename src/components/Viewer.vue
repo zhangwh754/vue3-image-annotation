@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted, defineExpose } from 'vue'
-import { StaticCanvas, FabricImage } from 'fabric'
+import { Canvas, FabricImage } from 'fabric'
 import { useMarkerTool } from '@/hooks/useMarkerTool'
 
 interface Props {
@@ -25,7 +25,8 @@ async function canvasRender() {
 
   if (!canvas) return
 
-  const fabricCanvas = new StaticCanvas(canvas)
+  // const fabricCanvas = new Canvas(canvas, { selection: false })
+  const fabricCanvas = new Canvas(canvas, { selection: true })
 
   setCanvasCtx(fabricCanvas)
 
@@ -43,6 +44,7 @@ async function canvasRender() {
 
   // 应用缩放
   fabricImage.scale(scale)
+  fabricImage.set({ selectable: false, evented: false })
 
   // 设置 canvas 尺寸以匹配缩放后的图像
   fabricCanvas.setDimensions({

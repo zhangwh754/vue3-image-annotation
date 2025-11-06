@@ -1,10 +1,10 @@
 // useRect.ts
 import { ref, type Ref } from 'vue'
-import { Rect, type StaticCanvas } from 'fabric'
+import { Rect, type Canvas, type TPointerEvent, type TPointerEventInfo } from 'fabric'
 import defaultConfig from '@/config/default-config'
 import useMouse from './useMouse'
 
-export default function useRect(canvasRef: Ref<StaticCanvas>) {
+export default function useRect(canvasRef: Ref<Canvas>) {
   const isDrawing = ref(false)
   const startX = ref(0)
   const startY = ref(0)
@@ -16,22 +16,13 @@ export default function useRect(canvasRef: Ref<StaticCanvas>) {
   // 保存临时矩形对象
   let tempRect: Rect | null = null
 
-  const getCanvasCoordinates = (e: MouseEvent) => {
-    const canvas = canvasRef.value
-    const rect = canvas.getElement().getBoundingClientRect()
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    }
-  }
-
   const { onMouseInit, onMouseClean } = useMouse(canvasRef, {
-    onMouseDown: (e: MouseEvent) => {
+    onMouseDown: (options: TPointerEventInfo<TPointerEvent>) => {
       const canvas = canvasRef.value
       if (!canvas) return
 
       isDrawing.value = true
-      const { x, y } = getCanvasCoordinates(e)
+      const { x, y } = canvas.getViewportPoint(options.e)
       startX.value = x
       startY.value = y
 
@@ -52,13 +43,13 @@ export default function useRect(canvasRef: Ref<StaticCanvas>) {
       canvas.renderAll()
     },
 
-    onMouseMove: (e: MouseEvent) => {
+    onMouseMove: (options: TPointerEventInfo<TPointerEvent>) => {
       if (!isDrawing.value || !tempRect) return
 
       const canvas = canvasRef.value
       if (!canvas) return
 
-      const { x, y } = getCanvasCoordinates(e)
+      const { x, y } = canvas.getViewportPoint(options.e)
 
       // 计算矩形的左上角和宽高
       const width = Math.abs(x - startX.value)
@@ -77,7 +68,7 @@ export default function useRect(canvasRef: Ref<StaticCanvas>) {
       canvas.renderAll()
     },
 
-    onMouseUp: (e: MouseEvent) => {
+    onMouseUp: (options: TPointerEventInfo<TPointerEvent>) => {
       if (!isDrawing.value || !tempRect) return
 
       const canvas = canvasRef.value
@@ -85,7 +76,7 @@ export default function useRect(canvasRef: Ref<StaticCanvas>) {
 
       isDrawing.value = false
 
-      const { x, y } = getCanvasCoordinates(e)
+      const { x, y } = canvas.getViewportPoint(options.e)
 
       // 计算最终尺寸
       const width = Math.abs(x - startX.value)
@@ -103,12 +94,16 @@ export default function useRect(canvasRef: Ref<StaticCanvas>) {
           top,
           width,
           height,
-          selectable: true,
-          evented: true,
+          selectable: true, // 可选择
+          evented: true, // 可交互
+          hasControls: true, // 显示控制点
+          hasBorders: true, // 显示边框
         })
       }
 
       canvas.renderAll()
+      canvas.setActiveObject(tempRect)
+      canvas.discardActiveObject()
       tempRect = null
     },
   })
