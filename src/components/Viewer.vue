@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { useMarkerTool } from '@/hooks/useMarkerTool'
 import { ref, onMounted, defineExpose } from 'vue'
+import { Canvas, FabricImage } from 'fabric'
+import { useMarkerTool } from '@/hooks/useMarkerTool'
 
 interface Props {
   imageUrl?: string
@@ -10,7 +11,7 @@ const props = withDefaults(defineProps<Props>(), {
   imageUrl: 'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg',
 })
 
-const { currentTool, toggleTool, clearCanvas, setCanvasCtx } = useMarkerTool()
+const { currentTool, toggleTool, setCanvasCtx } = useMarkerTool()
 
 const canvasRef = ref<null | HTMLCanvasElement>(null)
 
@@ -19,22 +20,43 @@ onMounted(() => {
 })
 
 // 在图片加载完后绘制到 canvas 上
-function canvasRender() {
+async function canvasRender() {
   const canvas = canvasRef.value
 
   if (!canvas) return
 
-  setCanvasCtx(canvas)
+  // const fabricCanvas = new Canvas(canvas, { selection: false })
+  const fabricCanvas = new Canvas(canvas, { selection: true })
 
-  const img = new Image()
-  img.crossOrigin = 'anonymous' // ⚠️ 若图片跨域，这行必加
-  img.src = props.imageUrl
-  img.onload = () => {
-    const ctx = canvas.getContext('2d')!
-    canvas.width = img.width
-    canvas.height = img.height
-    ctx.drawImage(img, 0, 0)
+  setCanvasCtx(fabricCanvas)
+
+  // 加载图像
+  const fabricImage = await FabricImage.fromURL(props.imageUrl)
+
+  // 设置最大宽度
+  const maxWidth = 800 // 你的最大宽度
+
+  // 计算缩放比例
+  let scale = 1
+  if (fabricImage.width > maxWidth) {
+    scale = maxWidth / fabricImage.width
   }
+
+  // 应用缩放
+  fabricImage.scale(scale)
+  fabricImage.set({ selectable: false, evented: false })
+
+  // 设置 canvas 尺寸以匹配缩放后的图像
+  fabricCanvas.setDimensions({
+    width: fabricImage.width * scale,
+    height: fabricImage.height * scale,
+  })
+
+  // 添加图像到 canvas
+  fabricCanvas.add(fabricImage)
+
+  // 渲染
+  fabricCanvas.renderAll()
 }
 
 // 暴露方法：导出 Canvas 内容为 File 对象

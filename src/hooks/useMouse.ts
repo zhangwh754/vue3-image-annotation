@@ -1,28 +1,49 @@
+import type { Canvas, TPointerEvent, TPointerEventInfo } from 'fabric'
 import type { Ref } from 'vue'
 
 type MouseHandler = {
-  onMouseMove?: (e: MouseEvent) => void
-  onMouseDown?: (e: MouseEvent) => void
-  onMouseUp?: (e: MouseEvent) => void
+  onMouseMove?: (options: TPointerEventInfo<TPointerEvent>) => void
+  onMouseDown?: (options: TPointerEventInfo<TPointerEvent>) => void
+  onMouseUp?: (options: TPointerEventInfo<TPointerEvent>) => void
+  onMouseDblClick?: (options: TPointerEventInfo<TPointerEvent>) => void
+  onMouseRightClick?: (e: MouseEvent) => void
 }
 
-export default function useMouse(domRef: Ref<HTMLElement>, mouseEvent: MouseHandler) {
-  const { onMouseMove, onMouseDown, onMouseUp } = mouseEvent
+export default function useMouse(domRef: Ref<Canvas>, mouseEvent: MouseHandler) {
+  const { onMouseMove, onMouseDown, onMouseUp, onMouseDblClick, onMouseRightClick } = mouseEvent
+
+  function onContextMenuHandler(e: MouseEvent) {
+    e.preventDefault()
+
+    if (onMouseRightClick) {
+      onMouseRightClick(e)
+    }
+  }
 
   const onMouseInit = () => {
-    if (onMouseMove) domRef.value.addEventListener('mousemove', onMouseMove)
-    if (onMouseDown) domRef.value.addEventListener('mousedown', onMouseDown)
-    if (onMouseUp) domRef.value.addEventListener('mouseup', onMouseUp)
+    const canvasElement = domRef.value
+    if (!canvasElement) return
+
+    if (onMouseMove) canvasElement.on('mouse:move', onMouseMove)
+    if (onMouseDown) canvasElement.on('mouse:down', onMouseDown)
+    if (onMouseUp) canvasElement.on('mouse:up', onMouseUp)
+    if (onMouseDblClick) canvasElement.on('mouse:dblclick', onMouseDblClick)
+
+    canvasElement.getElement().addEventListener('contextmenu', onContextMenuHandler)
 
     return () => onMouseClean()
   }
 
   const onMouseClean = () => {
-    if (!domRef.value) return
+    const canvasElement = domRef.value
+    if (!canvasElement) return
 
-    if (onMouseMove) domRef.value.removeEventListener('mousemove', onMouseMove)
-    if (onMouseDown) domRef.value.removeEventListener('mousedown', onMouseDown)
-    if (onMouseUp) domRef.value.removeEventListener('mouseup', onMouseUp)
+    if (onMouseMove) canvasElement.off('mouse:move', onMouseMove)
+    if (onMouseDown) canvasElement.off('mouse:down', onMouseDown)
+    if (onMouseUp) canvasElement.off('mouse:up', onMouseUp)
+    if (onMouseDblClick) canvasElement.off('mouse:dblclick', onMouseDblClick)
+
+    canvasElement.getElement().removeEventListener('contextmenu', onContextMenuHandler)
   }
 
   return {

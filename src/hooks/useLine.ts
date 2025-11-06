@@ -1,101 +1,111 @@
 // useLine.ts
 import { ref, type Ref } from 'vue'
+import { Line, type Canvas, type TPointerEvent, type TPointerEventInfo } from 'fabric'
 import defaultConfig from '@/config/default-config'
 import useMouse from './useMouse'
 
-export default function useLine(canvasRef: Ref<HTMLCanvasElement>) {
+export default function useLine(canvasRef: Ref<Canvas>) {
   const isDrawing = ref(false)
   const startX = ref(0)
   const startY = ref(0)
-  const endX = ref(0)
-  const endY = ref(0)
 
   const strokeWidth = ref(defaultConfig.strokeWidth)
   const strokeColor = ref(defaultConfig.strokeColor)
 
-  // 保存初始画布状态
-  let imageData: ImageData | null = null
-
-  const getCanvasCoordinates = (e: MouseEvent) => {
-    const rect = canvasRef.value.getBoundingClientRect()
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    }
-  }
-
-  const drawLine = (
-    ctx: CanvasRenderingContext2D,
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-  ) => {
-    ctx.beginPath()
-    ctx.moveTo(x1, y1)
-    ctx.lineTo(x2, y2)
-    ctx.strokeStyle = strokeColor.value
-    ctx.lineWidth = strokeWidth.value
-    ctx.stroke()
-    ctx.closePath()
-  }
+  // 保存临时线条对象
+  let tempLine: Line | null = null
 
   const { onMouseInit, onMouseClean } = useMouse(canvasRef, {
-    onMouseDown: (e: MouseEvent) => {
-      const ctx = canvasRef.value.getContext('2d')
-      if (!ctx) return
+    onMouseDown: (options: TPointerEventInfo<TPointerEvent>) => {
+      const canvas = canvasRef.value
+      if (!canvas) return
 
       isDrawing.value = true
-      const { x, y } = getCanvasCoordinates(e)
+      const { x, y } = canvas.getViewportPoint(options.e)
       startX.value = x
       startY.value = y
 
-      // 保存当前画布状态
-      imageData = ctx.getImageData(0, 0, canvasRef.value.width, canvasRef.value.height)
+      // 创建临时线条用于预览
+      tempLine = new Line([x, y, x, y], {
+        stroke: strokeColor.value,
+        strokeWidth: strokeWidth.value,
+        selectable: false,
+        evented: false,
+      })
+
+      canvas.add(tempLine)
+      canvas.renderAll()
     },
 
-    onMouseMove: (e: MouseEvent) => {
-      if (!isDrawing.value) return
+    onMouseMove: (options: TPointerEventInfo<TPointerEvent>) => {
+      if (!isDrawing.value || !tempLine) return
 
-      const ctx = canvasRef.value.getContext('2d')
-      if (!ctx || !imageData) return
+      const canvas = canvasRef.value
+      if (!canvas) return
 
-      const { x, y } = getCanvasCoordinates(e)
-      endX.value = x
-      endY.value = y
+      const { x, y } = canvas.getViewportPoint(options.e)
 
-      // 恢复画布状态（清除预览）
-      ctx.putImageData(imageData, 0, 0)
+      // 更新线条终点
+      tempLine.set({
+        x2: x,
+        y2: y,
+      })
 
-      // 绘制预览
-      drawLine(ctx, startX.value, startY.value, endX.value, endY.value)
+      canvas.renderAll()
     },
 
-    onMouseUp: (e: MouseEvent) => {
-      if (!isDrawing.value) return
+    onMouseUp: (options: TPointerEventInfo<TPointerEvent>) => {
+      if (!isDrawing.value || !tempLine) return
 
-      const ctx = canvasRef.value.getContext('2d')
-      if (!ctx) return
+      const canvas = canvasRef.value
+      if (!canvas) return
 
       isDrawing.value = false
 
-      const { x, y } = getCanvasCoordinates(e)
-      endX.value = x
-      endY.value = y
+      const { x, y } = canvas.getViewportPoint(options.e)
 
-      // 最终绘制
-      if (imageData) {
-        ctx.putImageData(imageData, 0, 0)
+      // 计算线条长度
+      const length = Math.sqrt(Math.pow(x - startX.value, 2) + Math.pow(y - startY.value, 2))
+
+      // 如果线条太短，移除它
+      if (length < 2) {
+        canvas.remove(tempLine)
+      } else {
+        // 更新最终位置并设置为可选择
+        tempLine.set({
+          x2: x,
+          y2: y,
+          selectable: true,
+          evented: true,
+          hasControls: false,
+          hasBorders: true,
+          perPixelTargetFind: true, // 精确像素检测
+          targetFindTolerance: 5, // 增加选择容差（像素）
+        })
       }
-      drawLine(ctx, startX.value, startY.value, endX.value, endY.value)
 
-      imageData = null
+      canvas.renderAll()
+      canvas.setActiveObject(tempLine)
+      canvas.discardActiveObject()
+      tempLine = null
     },
   })
 
+  const cleanupLine = () => {
+    if (tempLine && canvasRef.value) {
+      canvasRef.value.remove(tempLine)
+      canvasRef.value.renderAll()
+      tempLine = null
+    }
+    isDrawing.value = false
+  }
+
   return {
     onMouseInit,
-    onMouseClean,
+    onMouseClean: () => {
+      cleanupLine()
+      onMouseClean()
+    },
     strokeWidth,
     strokeColor,
   }

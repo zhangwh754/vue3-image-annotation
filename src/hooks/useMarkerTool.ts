@@ -3,22 +3,23 @@ import type { ToolType } from '@/components/marker.config'
 import useCircle from './useCircle'
 import useRect from './useRect'
 import useLine from './useLine'
+import type { Canvas } from 'fabric'
 
 const currentTool = ref<ToolType>(null)
-const canvasRef = ref<HTMLCanvasElement | null>(null)
+const canvasRef = ref<Canvas | null>(null)
 
 export function useMarkerTool() {
   const { onMouseInit: onCircleMouseInit, onMouseClean: onCircleMouseClean } = useCircle(
-    canvasRef as Ref<HTMLCanvasElement>,
+    canvasRef as Ref<Canvas>,
   )
   const { onMouseInit: onRectMouseInit, onMouseClean: onRectMouseClean } = useRect(
-    canvasRef as Ref<HTMLCanvasElement>,
+    canvasRef as Ref<Canvas>,
   )
   const { onMouseInit: onLineMouseInit, onMouseClean: onLineMouseClean } = useLine(
-    canvasRef as Ref<HTMLCanvasElement>,
+    canvasRef as Ref<Canvas>,
   )
 
-  function setCanvasCtx(ctx: HTMLCanvasElement) {
+  function setCanvasCtx(ctx: Canvas) {
     canvasRef.value = ctx
   }
 
@@ -32,7 +33,7 @@ export function useMarkerTool() {
       return cleanMouseEvent(tool)
     }
 
-    if (prevTool !== tool) {
+    if (prevTool && prevTool !== tool) {
       cleanMouseEvent(prevTool)
     }
 
@@ -51,6 +52,10 @@ export function useMarkerTool() {
         onLineMouseInit()
         break
     }
+
+    if (canvasRef.value) {
+      canvasRef.value.selection = false
+    }
   }
 
   function cleanMouseEvent(tool: ToolType) {
@@ -65,15 +70,9 @@ export function useMarkerTool() {
         onLineMouseClean()
         break
     }
-  }
 
-  /** 清空画布 */
-  function clearCanvas() {
     if (canvasRef.value) {
-      const ctx = canvasRef.value
-      const ctxContext = canvasRef.value.getContext('2d')!
-
-      ctxContext.clearRect(0, 0, ctx.width, ctx.height)
+      canvasRef.value.selection = true
     }
   }
 
@@ -82,6 +81,5 @@ export function useMarkerTool() {
     currentTool,
     setCanvasCtx,
     toggleTool,
-    clearCanvas,
   }
 }
