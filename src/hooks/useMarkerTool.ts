@@ -4,6 +4,7 @@ import useCircle from './useCircle'
 import useRect from './useRect'
 import useLine from './useLine'
 import type { Canvas } from 'fabric'
+import useText from './useText'
 
 const currentTool = ref<ToolType>(null)
 const canvasRef = ref<Canvas | null>(null)
@@ -16,6 +17,9 @@ export function useMarkerTool() {
     canvasRef as Ref<Canvas>,
   )
   const { onMouseInit: onLineMouseInit, onMouseClean: onLineMouseClean } = useLine(
+    canvasRef as Ref<Canvas>,
+  )
+  const { onMouseInit: onTextMouseInit, onMouseClean: onTextMouseClean } = useText(
     canvasRef as Ref<Canvas>,
   )
 
@@ -51,6 +55,9 @@ export function useMarkerTool() {
       case 'line':
         onLineMouseInit()
         break
+      case 'text':
+        onTextMouseInit()
+        break
     }
 
     if (canvasRef.value) {
@@ -68,6 +75,9 @@ export function useMarkerTool() {
         break
       case 'line':
         onLineMouseClean()
+        break
+      case 'text':
+        onTextMouseClean()
         break
     }
 
