@@ -21,6 +21,11 @@ export default function useRect(canvasRef: Ref<Canvas>) {
       const canvas = canvasRef.value
       if (!canvas) return
 
+      const target = canvas.findTarget(options.e)
+      if (target && target instanceof Rect) {
+        return
+      }
+
       isDrawing.value = true
       const { x, y } = canvas.getViewportPoint(options.e)
       startX.value = x
@@ -95,6 +100,7 @@ export default function useRect(canvasRef: Ref<Canvas>) {
           width,
           height,
           selectable: true, // 可选择
+          editable: true, // 可编辑
           evented: true, // 可交互
           hasControls: true, // 显示控制点
           hasBorders: true, // 显示边框

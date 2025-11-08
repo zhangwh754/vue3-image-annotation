@@ -20,6 +20,11 @@ export default function useLine(canvasRef: Ref<Canvas>) {
       const canvas = canvasRef.value
       if (!canvas) return
 
+      const target = canvas.findTarget(options.e)
+      if (target && target instanceof Line) {
+        return
+      }
+
       isDrawing.value = true
       const { x, y } = canvas.getViewportPoint(options.e)
       startX.value = x
@@ -77,6 +82,7 @@ export default function useLine(canvasRef: Ref<Canvas>) {
           y2: y,
           selectable: true,
           evented: true,
+          editable: true, // 可编辑
           hasControls: false,
           hasBorders: true,
           perPixelTargetFind: true, // 精确像素检测
