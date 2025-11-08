@@ -10,12 +10,23 @@ export default function useText(canvasRef: Ref<Canvas>) {
   let tempText: IText | null = null
   let editingTicker: number | null = null
 
+  // 持续渲染修复光标与选区不同步
+  function startEditingTicker(textObj: IText, canvasObj: Canvas) {
+    if (editingTicker) cancelAnimationFrame(editingTicker)
+    const tick = () => {
+      if (textObj.isEditing) {
+        canvasObj.requestRenderAll()
+        editingTicker = requestAnimationFrame(tick)
+      }
+    }
+    editingTicker = requestAnimationFrame(tick)
+  }
+
   const { onMouseInit, onMouseClean } = useMouse(canvasRef, {
-    onMouseDown: async (options: TPointerEventInfo<TPointerEvent>) => {
+    onMouseDblClick: async (options: TPointerEventInfo<TPointerEvent>) => {
       const canvas = canvasRef.value
       if (!canvas) return
 
-      // 🔧 修复2: 检测点击目标是否为文本对象
       const target = canvas.findTarget(options.e)
       if (target && target instanceof IText) {
         // 点击到已有文本，先清理之前的编辑状态
@@ -33,6 +44,16 @@ export default function useText(canvasRef: Ref<Canvas>) {
 
         await nextTick()
         target.hiddenTextarea?.focus()
+        return
+      }
+    },
+
+    onMouseDown: async (options: TPointerEventInfo<TPointerEvent>) => {
+      const canvas = canvasRef.value
+      if (!canvas) return
+
+      const target = canvas.findTarget(options.e)
+      if (target && target instanceof IText) {
         return
       }
 
@@ -54,18 +75,6 @@ export default function useText(canvasRef: Ref<Canvas>) {
         hasControls: false,
         objectCaching: false,
       })
-
-      // 持续渲染修复光标与选区不同步
-      function startEditingTicker(textObj: IText, canvasObj: Canvas) {
-        if (editingTicker) cancelAnimationFrame(editingTicker)
-        const tick = () => {
-          if (textObj.isEditing) {
-            canvasObj.requestRenderAll()
-            editingTicker = requestAnimationFrame(tick)
-          }
-        }
-        editingTicker = requestAnimationFrame(tick)
-      }
 
       text.on('editing:entered', () => {
         tempText = text
