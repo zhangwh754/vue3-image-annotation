@@ -20,6 +20,11 @@ export default function useCircle(canvasRef: Ref<Canvas>) {
       const canvas = canvasRef.value
       if (!canvas) return
 
+      const target = canvas.findTarget(options.e)
+      if (target && target instanceof Circle) {
+        return
+      }
+
       isDrawing.value = true
       const { x, y } = canvas.getViewportPoint(options.e)
       startX.value = x

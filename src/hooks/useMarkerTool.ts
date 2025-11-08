@@ -3,8 +3,8 @@ import type { ToolType } from '@/components/marker.config'
 import useCircle from './useCircle'
 import useRect from './useRect'
 import useLine from './useLine'
-import type { Canvas } from 'fabric'
 import useText from './useText'
+import type { Canvas } from 'fabric'
 
 const currentTool = ref<ToolType>(null)
 const canvasRef = ref<Canvas | null>(null)
